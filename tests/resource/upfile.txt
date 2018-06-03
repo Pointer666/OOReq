@@ -1,0 +1,4 @@
+“avoid old ways of thinking by avoiding the metaphors that are associated
+ with those kinds of thinking. “Instead of ’next the machine needs to do
+ this,’ we use, ’Just ask object X to do that.”
+― David West, Object Thinking
