@@ -2,10 +2,10 @@
 
 namespace OOReq;
 
-use OOReq\ResponseTransformation\ResponseTransformationInterface;
+use OOReq\Response\CreateableByRequest;
 
 
 interface ResponseInterface
 {
-	public function transform(ResponseTransformationInterface $Transformation);
+	public function transform(CreateableByRequest $Transformation);
 }

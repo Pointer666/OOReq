@@ -1,9 +1,9 @@
 <?php
 
-namespace OOReq\ResponseTransformation;
+namespace OOReq\Response;
 
 
-interface TransformationOptionsInterface
+interface ResponseOptionsInterface
 {
 	/**
 	 * Should the headers be fetched?

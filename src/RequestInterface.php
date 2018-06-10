@@ -5,7 +5,6 @@ namespace OOReq;
 
 use OOReq\CURL\CURLInterface;
 use OOReq\HTTPMethod\MethodInterface;
-use OOReq\ResponseTransformation\ResponseTransformationInterface;
 
 interface RequestInterface
 {
@@ -20,7 +19,7 @@ interface RequestInterface
 	public function newPATCH(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface;
 	public function newTRACE(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface;
 
-	public function getResponseUsing(ResponseTransformationInterface $Transformation);
+	public function getResponseAs(CreateableByRequest $Transformation);
 
 	public function URL(): URL;
 

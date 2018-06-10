@@ -5,10 +5,10 @@ namespace OOReq;
 
 use OOReq\Header\Header;
 use OOReq\Header\Headerlist;
-use OOReq\ResponseTransformation\AbstractTransformation;
-use OOReq\ResponseTransformation\AbstractTransformationOptions;
-use OOReq\ResponseTransformation\ResponseTransformationInterface;
-use OOReq\ResponseTransformation\TransformationOptionsInterface;
+use OOReq\Response\AbstractResponse;
+use OOReq\Response\AbstractResponseOptions;
+use OOReq\Response\CreateableByRequest;
+use OOReq\Response\ResponseOptionsInterface;
 use OOReq\Type\TimePeriod;
 use PHPUnit\Framework\TestCase;
 
@@ -24,12 +24,12 @@ class ResponseTest extends TestCase
 		$this->CURL->method('getinfo')->willReturn(200);
 		$this->CURL->method('new')->willReturnSelf();
 		$this->CURLOptions    = $this->getMockBuilder(CURLOptions::class)->disableOriginalConstructor()->getMock();
-		$this->Transformation = $this->getMockBuilder(ResponseTransformationInterface::class)->getMock();
+		$this->Transformation = $this->getMockBuilder(CreateableByRequest::class)->getMock();
 	}
 
-	private function _getTransformationOptions($includeHeaders = false, $useStream = false): TransformationOptionsInterface
+	private function _getTransformationOptions($includeHeaders = false, $useStream = false): ResponseOptionsInterface
 	{
-		$TO = new class($includeHeaders, $useStream) implements TransformationOptionsInterface
+		$TO = new class($includeHeaders, $useStream) implements ResponseOptionsInterface
 		{
 			private $includeHeaders;
 			private $useStream;

@@ -1,9 +1,9 @@
 <?php
 
-namespace OOReq\ResponseTransformation;
+namespace OOReq\Response;
 
 
-final class TransformationOptions implements TransformationOptionsInterface
+final class ResponseOptions implements ResponseOptionsInterface
 {
 
 	/**

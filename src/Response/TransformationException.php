@@ -1,6 +1,6 @@
 <?php
 
-namespace OOReq\ResponseTransformation;
+namespace OOReq\Response;
 
 
 use OOReq\OOreqException;

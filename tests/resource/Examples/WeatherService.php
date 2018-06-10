@@ -1,7 +1,7 @@
 <?php
 
 use OOReq\RequestInterface;
-use OOReq\ResponseTransformation\AbstractTransformation;
+use OOReq\Response\AbstractResponse;
 
 class WeatherService
 {
@@ -23,14 +23,14 @@ class WeatherService
 	{
 		$Payload = new \OOReq\Payload(new \OOReq\DataAsGET('zip', $zip));
 		$Request = $this->Request->new(new URL('http://localhost:8000/WeatherService.php'), new GET(), $Payload);
-		return $Request->getResponseUsing(new Temperature());
+		return $Request->getResponseAs(new Temperature());
 	}
 }
 
-class Temperature extends AbstractTransformation
+class Temperature extends AbstractResponse
 {
 
-	public function transform($body, \OOReq\Header\Headerlist $Headers, \OOReq\HTTPStatusCode $Status, \OOReq\Type\TimePeriod $RequestTime)
+	public function createByRequest($body, \OOReq\Header\Headerlist $Headers, \OOReq\HTTPStatusCode $Status, \OOReq\Type\TimePeriod $RequestTime)
 	{
 		if(!$Status->isOK())
 		{

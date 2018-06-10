@@ -2,7 +2,6 @@ OOReq
 =====
 A object oriented wrapper for CURL. (Not stable - WIP)
 
-
 Theory of operation
 ===================
 Using OOReq contains of 2 parts. First preparing the request and second transforming
@@ -18,10 +17,11 @@ the response to the desired format.
     ```php
     <?php
 
-    $File = $Request->getResponseUsing(new \OOReq\ResponseTransformation\FileTransformation());
+    $File = $Request->getResponseAs(new \OOReq\Response\File());
     ```
-    That example just returns the response using the file transformation. Which returns
-    the response body as \SplFile. 
+    That example just returns the response using the file response. The File
+    class is an extension of the \SplFile class which implements the 
+    createableByRequest Interface.  
 
 Examples
 ----
@@ -31,12 +31,12 @@ Perform a GET Request and return the result as string.
 <?php
 use OOReq\Request;
 use OOReq\Url;
-use OOReq\ResponseTransformation\StringValue;
+use OOReq\Response\String;
 
 # Default method is GET
 $Request = new Request(new Url('http://www.example.com'));
 
-$result = $Request->resultAs(new StringValue());
+$result = $Request->resultAs(new String());
 ```
 
 Return the result as File.
@@ -44,7 +44,7 @@ Return the result as File.
 <?php
 use OOReq\Request;
 use OOReq\Url;
-use OOReq\ResponseTransformation\File;
+use OOReq\Response\File;
 
 # Default method is GET
 $Request = new Request(new Url('http://www.example.com'));
@@ -61,20 +61,20 @@ use OOReq\Url;
 use OOReq\HTTPMethod\POST;
 use OOReq\Payload;
 use OOReq\DataAsPOST;
-use OOReq\ResponseTransformation\StringValue;
+use OOReq\Response\String;
 
 $Url = new Url('http://www.somewhere.url');
 
 # Preparing the payload.
-$Data = new Payload();
-$Data->add(new DataAsPOST('PostFieldA', 'ValueA'));
-$Data->add(new DataAsPOST('PostFieldB', 'ValueB'));
+$Data = new Payload(
+                    new DataAsPOST('PostFieldA', 'ValueA'),
+                    new DataAsPOST('PostFieldB', 'ValueB')
+);
 
-$Request = new Request($Url,new POST(), $Data);
-$result = $Request->resultAs(new StringValue());
+$Request = new Request($Url, new POST(), $Data);
+$result = $Request->resultAs(new String());
 
 ```
-
 
 
 Why should you use it?
@@ -118,10 +118,9 @@ How to avoid this? Take a look at the following Example
 
 use OOReq\RequestInterface;
 use OOReq\Url;
-use OOReq\GET;
 use OOReq\Payload;
 use OOReq\DataAsGET;
-use OOReq\ResponseTransformation\StringValue;
+use OOReq\Response\StringValue;
 
 class getSth
 {
@@ -136,8 +135,8 @@ class getSth
 
     public function performRequest($param)
     {
-        $Payload = new Payload(new DataAsGet('param',$param));
-        $Request = $this->Request->new($this->Url,new GET(),$Payload); 
+        $Payload = new Payload(new DataAsGet('param', $param));
+        $Request = $this->Request->newGET($this->Url, $Payload); 
         $result = $Request->resultAs(new StringValue());
         # 
         # Here comes some error handling

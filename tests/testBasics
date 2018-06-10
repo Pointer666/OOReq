@@ -8,12 +8,13 @@ use OOReq\HTTPMethod\PUT;
 use OOReq\HTTPMethod\GET;
 use OOReq\HTTPStatusCode;
 use OOReq\MIMEType;
-use OOReq\ResponseTransformation\AbstractTransformation;
-use OOReq\ResponseTransformation\FileTransformation;
+use OOReq\Response\AbstractResponse;
+use OOReq\Response\File;
+use OOReq\Response\FileTransformation;
 use OOReq\Payload;
 use OOReq\DataAsPOST;
 use OOReq\Request;
-use OOReq\ResponseTransformation\StringTransformation;
+use OOReq\Response\StringValue;
 use OOReq\Type\TimePeriod;
 use OOReq\URL;
 use PHPUnit\Framework\TestCase;
@@ -43,8 +44,8 @@ class testBasics extends TestCase
 	public function testBasicGET()
 	{
 		$Request = new Request(new URL('http://' . self::TESTHOST . '/hallo'));
-		// Return the body as string with the string transformation
-		$result = $Request->getResponseUsing(new StringTransformation());
+		// Return the body as string
+		$result = $Request->getResponseAs(new StringValue());
 
 		$this->assertEquals('hallo', $result);
 	}
@@ -64,7 +65,7 @@ class testBasics extends TestCase
 
 		$Request = $this->Request->newPOST($URL, $Payload);
 
-		$Result = $Request->getResponseUsing(new StringTransformation());
+		$Result = $Request->getResponseAs(new StringValue());
 
 		$this->assertEquals('OK', $Result);
 	}
@@ -79,7 +80,7 @@ class testBasics extends TestCase
 			new Payload(new \OOReq\DataAsRawBodyPOST($content, $contentType))
 		);
 
-		$Result = $Request->getResponseUsing(new StringTransformation());
+		$Result = $Request->getResponseAs(new StringValue());
 
 		$this->assertEquals('[' . $content . '][' . $contentType . ']', $Result);
 
@@ -92,14 +93,14 @@ class testBasics extends TestCase
 	{
 		$Request = new Request(new URL('http://user:password@' . self::TESTHOST . '/basicAuth.php'));
 
-		// Return the body as String with the String Printer
-		$result = $Request->getResponseUsing(new StringTransformation());
+		// Return the body as StringValue with the StringValue Printer
+		$result = $Request->getResponseAs(new StringValue());
 		$this->assertEquals('OK', $result);
 
 		$Request = new Request(new URL('http://user:WRONGpassword@' . self::TESTHOST . '/basicAuth.php'));
 
-		// Return the body as String with the String Printer
-		$result = $Request->getResponseUsing(new StringTransformation());
+		// Return the body as StringValue with the StringValue Printer
+		$result = $Request->getResponseAs(new StringValue());
 		$this->assertEquals('Unknown password/user', $result);
 
 	}
@@ -109,10 +110,8 @@ class testBasics extends TestCase
 	{
 		$GETRequest = new Request(new URL('http://' . self::TESTHOST . "/bigFile.php"));
 
-		$File = new \SplFileObject('/tmp/testFile', 'w+');
-
 		/** @var \SplFileObject $Out */
-		$OutFile = $GETRequest->getResponseUsing(new FileTransformation($File));
+		$OutFile = $GETRequest->getResponseAs(new File('/tmp/testFile', 'w+'));
 		$this->assertInstanceof(\SplFileObject::class, $OutFile);
 
 	}
@@ -122,7 +121,7 @@ class testBasics extends TestCase
 		$GETRequest = new Request(new URL('http://' . self::TESTHOST . "/bigFile.php"));
 
 		/** @var \SplFileObject $Out */
-		$GETRequest->getResponseUsing(new StringTransformation());
+		$GETRequest->getResponseAs(new StringValue());
 		$this->assertTrue(true);
 	}
 
@@ -133,18 +132,18 @@ class testBasics extends TestCase
 	{
 
 		$TestTransformation =
-			new class extends AbstractTransformation
+			new class extends AbstractResponse
 			{
-				public function transform($body, Headerlist $Headers, HTTPStatusCode $Status, $timePeriod)
+				public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, $timePeriod)
 				{
 					return ($Status->isOK()
 						&& $Headers->get(new Header('TestHeaderA'))->value() == 'testString'
-						&& $Headers->get(new Header('TestHeaderB'))->value() == 'another String');
+						&& $Headers->get(new Header('TestHeaderB'))->value() == 'another StringValue');
 				}
 			};
 
 		$Request = new Request(new URL('http://' . self::TESTHOST . '/headers.php'));
-		$this->assertTrue($Request->getResponseUsing($TestTransformation));
+		$this->assertTrue($Request->getResponseAs($TestTransformation));
 
 	}
 
@@ -156,7 +155,7 @@ class testBasics extends TestCase
 		$Payload = new Payload(new Header($headerName, $headerValue));
 		$Request = new Request(new Url('http://' . self::TESTHOST . '/returnHeader.php'), new GET(), $Payload);
 
-		$res = $Request->getResponseUsing(new StringTransformation());
+		$res = $Request->getResponseAs(new StringValue());
 		$this->assertEquals($headerName . ':' . $headerValue, $res);
 	}
 
@@ -164,10 +163,10 @@ class testBasics extends TestCase
 	{
 		$Request = new Request(new Url('http://' . self::TESTHOST . '/teapot.php'));
 
-		$this->assertTrue($Request->getResponseUsing(
-			new class extends AbstractTransformation
+		$this->assertTrue($Request->getResponseAs(
+			new class extends AbstractResponse
 			{
-				public function transform($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime)
+				public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime)
 				{
 					return $Status->isI_AM_A_TEAPOT();
 				}
@@ -182,7 +181,7 @@ class testBasics extends TestCase
 	{
 		$Request = $this->Request->newPUT(new URL('http://' . self::TESTHOST . "/returnMethod.php"));
 
-		$body = $Request->getResponseUsing(new StringTransformation());
+		$body = $Request->getResponseAs(new StringValue());
 
 		$this->assertEquals('PUT', $body);
 	}
@@ -198,9 +197,9 @@ class testBasics extends TestCase
 			$File,
 			new MIMEType('text/plain')));
 
-		$TestPrinter = new class extends AbstractTransformation
+		$TestPrinter = new class extends AbstractResponse
 		{
-			public function transform($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime)
+			public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime)
 			{
 
 				$bodyDecoded = json_decode($body, true);
@@ -212,7 +211,7 @@ class testBasics extends TestCase
 		};
 
 		$Request = new Request(new URL('http://' . self::TESTHOST . "/fileUpload.php"), new POST(), $Payload);
-		$this->assertTrue($Request->getResponseUsing($TestPrinter));
+		$this->assertTrue($Request->getResponseAs($TestPrinter));
 
 	}
 
@@ -226,10 +225,10 @@ class testBasics extends TestCase
 
 		$Request = new Request($URL, new PUT(), $Payload);
 		$this->assertTrue(
-			$Request->getResponseUsing(
-				new class extends AbstractTransformation
+			$Request->getResponseAs(
+				new class extends AbstractResponse
 				{
-					public function transform($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime)
+					public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime)
 					{
 						$bodyArr = json_decode($body, true);
 						return (
@@ -258,6 +257,6 @@ class testBasics extends TestCase
 			$Options
 		);
 
-		$res = $Request->getResponseUsing(new StringTransformation());
+		$res = $Request->getResponseAs(new StringValue());
 	}
 }

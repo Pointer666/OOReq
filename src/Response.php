@@ -5,4 +5,4 @@ namespace OOReq;
 
 use OOReq\Header\Header;
 use OOReq\Header\Headerlist;
-use OOReq\ResponseTransformation\ResponseTransformationInterface;
+use OOReq\Response\CreateableByRequest;

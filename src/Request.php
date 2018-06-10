@@ -19,7 +19,7 @@ use OOReq\HTTPMethod\PATCH;
 use OOReq\HTTPMethod\POST;
 use OOReq\HTTPMethod\PUT;
 use OOReq\HTTPMethod\TRACE;
-use OOReq\ResponseTransformation\ResponseTransformationInterface;
+use OOReq\CreateableByRequest;
 use OOReq\Type\TimePeriod;
 
 class Request implements RequestInterface
@@ -222,7 +222,7 @@ class Request implements RequestInterface
 	}
 
 
-	public function getResponseUsing(ResponseTransformationInterface $Transformation)
+	public function getResponseAs(CreateableByRequest $Transformation)
 	{
 		if ($this->wasInitialized == false)
 		{
@@ -233,7 +233,7 @@ class Request implements RequestInterface
 		{
 			if ($Transformation->RequestOptions()->useStream())
 			{
-				$this->CURLOptions->setOpt(CURLOPT_WRITEFUNCTION, $Transformation->getCallback());
+				$this->CURLOptions->setOpt(CURLOPT_WRITEFUNCTION, $Transformation->streamCallback());
 			}
 
 			$this->CURLOptions->setOpt(CURLOPT_HEADER, $Transformation->RequestOptions()->includeHeaders());
@@ -274,7 +274,7 @@ class Request implements RequestInterface
 			$this->_performCurlRequest();
 			$this->TimePeriod = new TimePeriod($start, microtime(true));
 		}
-		return $Transformation->transform($this->_getResponseBody(), new HeaderList(...$headerLines), $this->_getStatus(), $this->TimePeriod);
+		return $Transformation->createByRequest($this->_getResponseBody(), new HeaderList(...$headerLines), $this->_getStatus(), $this->TimePeriod);
 	}
 
 	private function _performCurlRequest()

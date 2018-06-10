@@ -1,13 +1,14 @@
 <?php
 
-namespace OOReq\ResponseTransformation;
+namespace OOReq;
 
 
 use OOReq\Header\Headerlist;
 use OOReq\HTTPStatusCode;
 use OOReq\Type\TimePeriod;
+use OOReq\Response\ResponseOptionsInterface;
 
-interface ResponseTransformationInterface
+interface CreateableByRequest
 {
 
 	/**
@@ -17,9 +18,9 @@ interface ResponseTransformationInterface
 	 * @param $data
 	 * @return callable
 	 */
-	public function getCallback(): callable;
+	public function streamCallback(): callable;
 
-	public function RequestOptions(): TransformationOptionsInterface;
+	public function RequestOptions(): ResponseOptionsInterface;
 
-	public function transform($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime);
+	public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime);
 }
