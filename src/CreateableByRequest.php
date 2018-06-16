@@ -4,7 +4,6 @@ namespace OOReq;
 
 
 use OOReq\Header\Headerlist;
-use OOReq\HTTPStatusCode;
 use OOReq\Type\TimePeriod;
 use OOReq\Response\ResponseOptionsInterface;
 

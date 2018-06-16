@@ -3,7 +3,7 @@
 namespace OOReq;
 
 
-class RequestOptions
+class RequestOptions implements RequestOptionsInterface
 {
 	/**
 	 * Connection Timeout in MS
@@ -12,7 +12,6 @@ class RequestOptions
 	private $connectionTimeout = 0;
 	private $referer = '';
 	private $timeout = 0;
-
 
 	public function timeout(): int
 	{

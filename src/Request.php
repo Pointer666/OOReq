@@ -19,7 +19,6 @@ use OOReq\HTTPMethod\PATCH;
 use OOReq\HTTPMethod\POST;
 use OOReq\HTTPMethod\PUT;
 use OOReq\HTTPMethod\TRACE;
-use OOReq\CreateableByRequest;
 use OOReq\Type\TimePeriod;
 
 class Request implements RequestInterface
@@ -50,12 +49,8 @@ class Request implements RequestInterface
 	 */
 	private $CURL;
 	private $wasInitialized = false;
-	/**
-	 * @var null|Headerlist
-	 */
-	private $Headerlist;
 
-	public function __construct(?URL $Url=null,
+	public function __construct(?URL $Url = null,
 								?MethodInterface $HTTPMethod = null,
 								?PayloadInterface $Payload = null,
 								?RequestOptions $RequestOptions = null,
@@ -126,11 +121,6 @@ class Request implements RequestInterface
 		return $this->Payload;
 	}
 
-	public function new(URL $Url, ?MethodInterface $HTTPMethod = null, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface
-	{
-		return new Request($Url, $HTTPMethod, $Payload, $CURL);
-	}
-
 
 	private function _setPostFields()
 	{
@@ -183,8 +173,16 @@ class Request implements RequestInterface
 			$params = array_merge($params, $Parameter->asArray());
 		}
 
+		// If we've got no params to add
+		if (count($params) == 0)
+		{
+			// use our old options
+			return $this->CURLOptions;
+		}
+
 		$Url         = $this->Url->addParameters($params);
 		$CurlOptions = new CURLOptions($Url);
+
 		foreach ($this->CURLOptions->asArray() as $key => $value)
 		{
 			$CurlOptions->setOpt($key, $value);
@@ -326,49 +324,81 @@ class Request implements RequestInterface
 		}
 	}
 
-	public function newGET(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface
+	public function newGET(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url,new GET(),$Payload,$CURL);
+		return $this->new($Url, new GET(), $Payload, $RequestOptions, $this->CURL);
 	}
 
-	public function newPOST(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface
+	public function newPOST(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url,new POST(),$Payload,$CURL);
+		return $this->new($Url, new POST(), $Payload, $RequestOptions, $this->CURL);
 	}
 
-	public function newPUT(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface
+	public function newPUT(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url,new PUT(),$Payload,$CURL);
+		return $this->new($Url, new PUT(), $Payload, $RequestOptions, $this->CURL);
 	}
 
-	public function newDELETE(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface
+	public function newDELETE(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url,new DELETE(),$Payload,$CURL);
+		return $this->new($Url, new DELETE(), $Payload, $RequestOptions, $this->CURL);
 	}
 
-	public function newCONNECT(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface
+	public function newCONNECT(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url,new CONNECT(),$Payload,$CURL);
+		return $this->new($Url, new CONNECT(), $Payload, $RequestOptions, $this->CURL);
 	}
 
-	public function newHEAD(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface
+	public function newHEAD(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url,new HEAD(),$Payload,$CURL);
+		return $this->new($Url, new HEAD(), $Payload, $RequestOptions, $this->CURL);
 	}
 
-	public function newOPTIONS(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface
+	public function newOPTIONS(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url,new OPTIONS(),$Payload,$CURL);
+		return $this->new($Url, new OPTIONS(), $Payload, $RequestOptions, $this->CURL);
 	}
 
-	public function newPATCH(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface
+	public function newPATCH(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url,new PATCH(),$Payload,$CURL);
+		return $this->new($Url, new PATCH(), $Payload, $RequestOptions, $this->CURL);
 	}
 
-	public function newTRACE(URL $Url, ?PayloadInterface $Payload = null, ?CURLInterface $CURL = null): RequestInterface
+	public function newTRACE(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url,new TRACE(),$Payload,$CURL);
+		return $this->new($Url, new TRACE(), $Payload, $RequestOptions, $this->CURL);
+	}
+
+	/**
+	 * Creates a new Request object from a prototype.
+	 * @param URL $Url
+	 * @param null|MethodInterface $HTTPMethod If null the value from the prototype is used
+	 * @param null|PayloadInterface $Payload If null the value from the prototype is used
+	 * @param null|RequestOptionsInterface $RequestOptions If null the value from the prototype is used
+	 * @return RequestInterface
+	 */
+	public function new(URL $Url, ?MethodInterface $HTTPMethod = null, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	{
+		if (is_null($HTTPMethod))
+		{
+			$HTTPMethod = $this->HTTPMethod;
+		}
+
+		if (is_null($Payload))
+		{
+			$Payload = $this->Payload;
+		}
+
+		if (is_null($RequestOptions))
+		{
+			$RequestOptions = $this->RequestOptions;
+		}
+		return new Request($Url, $HTTPMethod, $Payload, $RequestOptions, $this->CURL);
+	}
+
+	public function Options(): RequestOptionsInterface
+	{
+		return $this->RequestOptions;
 	}
 }
 

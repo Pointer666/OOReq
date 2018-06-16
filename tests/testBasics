@@ -110,7 +110,7 @@ class testBasics extends TestCase
 	{
 		$GETRequest = new Request(new URL('http://' . self::TESTHOST . "/bigFile.php"));
 
-		/** @var \SplFileObject $Out */
+		/** @var \SplFileObject $OutFile */
 		$OutFile = $GETRequest->getResponseAs(new File('/tmp/testFile', 'w+'));
 		$this->assertInstanceof(\SplFileObject::class, $OutFile);
 
