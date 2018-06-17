@@ -3,7 +3,7 @@
 namespace OOReq;
 
 
-interface PayloadInterface extends \Iterator
+interface PayloadInterface
 {
 	public function getParametersByDataType(DataInterface $Data): array;
 

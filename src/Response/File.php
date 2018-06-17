@@ -2,6 +2,9 @@
 
 namespace OOReq\Response;
 use OOReq\CreateableByRequest;
+use OOReq\Header\Headerlist;
+use OOReq\HTTPStatusCode;
+use OOReq\Type\TimePeriod;
 
 final class File extends \SplFileObject implements CreateableByRequest
 {
@@ -29,7 +32,7 @@ final class File extends \SplFileObject implements CreateableByRequest
 		};
 	}
 
-	public function createByRequest($body, $Header, $Status, $TimePeriod)
+	public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime)
 	{
 		$this->flock(LOCK_UN);
 		return $this;

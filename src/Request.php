@@ -102,7 +102,7 @@ class Request implements RequestInterface
 		}
 		else
 		{
-			$this->RequestOptions = $RequestOptions;
+			$this->RequestOptions = clone $RequestOptions;
 		}
 	}
 
@@ -288,7 +288,13 @@ class Request implements RequestInterface
 			throw new ConnectionException($Curl->error(), $Curl->errno());
 		}
 
-		$bodyStart  = strpos($this->response, "\r\n\r\n");
+		$bodyStart = strpos($this->response, "\r\n\r\n");
+		if ($bodyStart !== false)
+		{
+			// if Headers were present. skip \r\n\r\n
+			$bodyStart += 4;
+		}
+
 		$this->body = substr($this->response, $bodyStart);
 
 		$this->httpCode = $Curl->getinfo(CURLINFO_HTTP_CODE);

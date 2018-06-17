@@ -10,7 +10,7 @@ class URL
 
 	public function __construct(?string $url=null)
 	{
-		$this->url   = $url;
+		$this->url   = $url??'';
 		$this->parts = parse_url($url);
 	}
 

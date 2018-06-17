@@ -10,8 +10,14 @@ class RequestOptions implements RequestOptionsInterface
 	 * @var int
 	 */
 	private $connectionTimeout = 0;
-	private $referer = '';
 	private $timeout = 0;
+	private $Referer;
+
+	public function __construct()
+	{
+		$this->Referer = new URL();
+
+	}
 
 	public function timeout(): int
 	{
@@ -35,8 +41,13 @@ class RequestOptions implements RequestOptionsInterface
 	}
 
 
+	public function setReferer(URL $Referer)
+	{
+		$this->Referer = $Referer;
+	}
+
 	public function referer(): string
 	{
-		return $this->referer;
+		return $this->Referer->asString();
 	}
 }
