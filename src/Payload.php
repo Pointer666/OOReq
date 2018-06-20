@@ -8,7 +8,6 @@ use OOReq\Header\HeaderInterface;
 class Payload implements PayloadInterface
 {
 	private $data = [];
-	private $position;
 
 	private const POST = 'POST';
 	private const HEADER = 'HEADER';
@@ -47,7 +46,6 @@ class Payload implements PayloadInterface
 				break;
 		}
 
-
 		return $classType;
 	}
 
@@ -57,7 +55,7 @@ class Payload implements PayloadInterface
 		{
 			if ($Param->isEmpty())
 			{
-				throw new \UnexpectedValueException('Trying to add empty data object of type: ' . $this->_getType($Param));
+				throw new \UnexpectedValueException('Trying to add empty data object of type: ' . $this->_getType($Param), 1);
 			}
 
 			$classType = $this->_getType($Param);
@@ -66,7 +64,7 @@ class Payload implements PayloadInterface
 				|| $classType == self::RAWPOST && key_exists(self::POST, $this->data)
 			)
 			{
-				throw new \UnexpectedValueException('You may not mix urlencoded POSTdata and rawPOSTdata');
+				throw new \UnexpectedValueException('You may not mix urlencoded POSTdata and rawPOSTdata', 2);
 			}
 			if (key_exists($classType, $this->data))
 			{

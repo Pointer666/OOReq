@@ -32,6 +32,22 @@ class testBasics extends TestCase
 	 * @var Request
 	 */
 	private $Request;
+	public static $pid;
+
+	public static function setUpBeforeClass()
+	{
+		$command   = "cd " . BASEPATH . "/resource; php -S ".self::TESTHOST;
+		$pid       = shell_exec(sprintf('%s > /dev/null 2>&1 & echo $!', $command));
+		self::$pid = $pid;
+		echo "PID: ".$pid;
+	}
+
+	public static function tearDownAfterClass()
+	{
+		$cmd="kill ".self::$pid;
+		echo $cmd;
+		shell_exec($cmd);
+	}
 
 	public function setUp()
 	{
@@ -52,7 +68,7 @@ class testBasics extends TestCase
 
 	public function testBasicPOST()
 	{
-		$URL      = new URL('http://' . self::TESTHOST . '/postTest.php');
+		$URL = new URL('http://' . self::TESTHOST . '/postTest.php');
 
 		$Payload = new Payload(
 			...(new DataAsPOST())->createFromArray([
