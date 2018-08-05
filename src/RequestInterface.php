@@ -3,7 +3,6 @@
 namespace OOReq;
 
 
-use OOReq\CURL\CURLInterface;
 use OOReq\HTTPMethod\MethodInterface;
 
 interface RequestInterface

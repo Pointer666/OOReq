@@ -19,7 +19,6 @@ use OOReq\HTTPMethod\PATCH;
 use OOReq\HTTPMethod\POST;
 use OOReq\HTTPMethod\PUT;
 use OOReq\HTTPMethod\TRACE;
-use OOReq\Type\TimePeriod;
 
 class Request implements RequestInterface
 {
@@ -28,7 +27,7 @@ class Request implements RequestInterface
 	 */
 	private $Url;
 	/**
-	 * @var HTTPMethod
+	 * @var MethodInterface
 	 */
 	private $HTTPMethod;
 	/**
@@ -53,7 +52,7 @@ class Request implements RequestInterface
 	public function __construct(?URL $Url = null,
 								?MethodInterface $HTTPMethod = null,
 								?PayloadInterface $Payload = null,
-								?RequestOptions $RequestOptions = null,
+								?RequestOptionsInterface $RequestOptions = null,
 								?CURLInterface $CURL = null)
 	{
 		if (is_null($Url))
@@ -80,7 +79,6 @@ class Request implements RequestInterface
 		}
 		else
 		{
-
 			$this->Payload = clone $Payload;
 		}
 
@@ -108,17 +106,17 @@ class Request implements RequestInterface
 
 	public function URL(): URL
 	{
-		return $this->Url;
+		return clone $this->Url;
 	}
 
 	public function HTTPMethod(): MethodInterface
 	{
-		return $this->HTTPMethod;
+		return clone $this->HTTPMethod;
 	}
 
 	public function Payload(): PayloadInterface
 	{
-		return $this->Payload;
+		return clone $this->Payload;
 	}
 
 
@@ -239,10 +237,13 @@ class Request implements RequestInterface
 			$headerLines = [];
 
 			$this->CURLOptions->setOpt(CURLOPT_HEADERFUNCTION, function ($ch, $line) use (&$headerLines) {
-				$EmptyHeader   = new Header();
-				$headerLines[] = $EmptyHeader->createByString($line);
-				return strlen($line);
+				$EmptyHeader = new Header();
+				if (trim($line) != '')
+				{
+					$headerLines[] = $EmptyHeader->createByString($line);
+				}
 
+				return strlen($line);
 			});
 
 			if ($this->RequestOptions->connectionTimeout() > 0)
@@ -267,16 +268,30 @@ class Request implements RequestInterface
 				$this->CURLOptions->setOpt(CURLOPT_REFERER, $this->RequestOptions->referer());
 			}
 
+			$Start = \DateTime::createFromFormat('0.u00 U', microtime());
 
-			$start = microtime(true);
 			$this->_performCurlRequest();
-			$this->TimePeriod = new TimePeriod($start, microtime(true));
+			$this->_log('debug', 'Got header: [' . $this->_formatHeaderLines($headerLines) . "]");
+			$this->TimePeriod = $Start->diff(\DateTime::createFromFormat('0.u00 U', microtime()));
+			$this->_log('debug', 'Request took ' . $this->TimePeriod->f . ' microseconds');
 		}
 		return $Transformation->createByRequest($this->_getResponseBody(), new HeaderList(...$headerLines), $this->_getStatus(), $this->TimePeriod);
 	}
 
+	private function _getFormattedCurlOptions(): string
+	{
+		return "curloptions: [URL: " . $this->CURLOptions->URL()->asString() ."\n". $this->CURLOptions->asString(). "]";
+	}
+
+	private function _log($level, $msg)
+	{
+		$this->RequestOptions->Logger()->$level('OOReq: ' . $msg);
+	}
+
 	private function _performCurlRequest()
 	{
+
+		$this->_log('debug', 'Using ' . $this->_getFormattedCurlOptions());
 
 		$Curl = $this->CURL->new($this->CURLOptions);
 
@@ -284,6 +299,7 @@ class Request implements RequestInterface
 
 		if ($this->response === false)
 		{
+			$this->_log('error', 'curl error[' . $Curl->error() . "][" . $Curl->errno() . "] " . $this->_getFormattedCurlOptions());
 			// an curl error occured
 			throw new ConnectionException($Curl->error(), $Curl->errno());
 		}
@@ -296,8 +312,9 @@ class Request implements RequestInterface
 		}
 
 		$this->body = substr($this->response, $bodyStart);
-
+		$this->_log('debug', 'Got body: [' . trim($this->body) . ']');
 		$this->httpCode = $Curl->getinfo(CURLINFO_HTTP_CODE);
+		$this->_log('debug', 'Got HTTP Code: [' . $this->httpCode . ']');
 	}
 
 	private function _getResponseBody(): string
@@ -332,47 +349,47 @@ class Request implements RequestInterface
 
 	public function newGET(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url, new GET(), $Payload, $RequestOptions, $this->CURL);
+		return $this->new($Url, new GET(), $Payload, $RequestOptions);
 	}
 
 	public function newPOST(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url, new POST(), $Payload, $RequestOptions, $this->CURL);
+		return $this->new($Url, new POST(), $Payload, $RequestOptions);
 	}
 
 	public function newPUT(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url, new PUT(), $Payload, $RequestOptions, $this->CURL);
+		return $this->new($Url, new PUT(), $Payload, $RequestOptions);
 	}
 
 	public function newDELETE(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url, new DELETE(), $Payload, $RequestOptions, $this->CURL);
+		return $this->new($Url, new DELETE(), $Payload, $RequestOptions);
 	}
 
 	public function newCONNECT(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url, new CONNECT(), $Payload, $RequestOptions, $this->CURL);
+		return $this->new($Url, new CONNECT(), $Payload, $RequestOptions);
 	}
 
 	public function newHEAD(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url, new HEAD(), $Payload, $RequestOptions, $this->CURL);
+		return $this->new($Url, new HEAD(), $Payload, $RequestOptions);
 	}
 
 	public function newOPTIONS(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url, new OPTIONS(), $Payload, $RequestOptions, $this->CURL);
+		return $this->new($Url, new OPTIONS(), $Payload, $RequestOptions);
 	}
 
 	public function newPATCH(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url, new PATCH(), $Payload, $RequestOptions, $this->CURL);
+		return $this->new($Url, new PATCH(), $Payload, $RequestOptions);
 	}
 
 	public function newTRACE(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
 	{
-		return $this->new($Url, new TRACE(), $Payload, $RequestOptions, $this->CURL);
+		return $this->new($Url, new TRACE(), $Payload, $RequestOptions);
 	}
 
 	/**
@@ -404,7 +421,18 @@ class Request implements RequestInterface
 
 	public function Options(): RequestOptionsInterface
 	{
-		return $this->RequestOptions;
+		return clone $this->RequestOptions;
+	}
+
+	private function _formatHeaderLines(array $headerLines)
+	{
+		$out = '';
+		/** @var Header $Header */
+		foreach ($headerLines as $Header)
+		{
+			$out .= $Header->asString() . "\n";
+		}
+		return $out;
 	}
 }
 

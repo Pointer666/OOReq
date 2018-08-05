@@ -3,17 +3,22 @@
 namespace OOReq\Header;
 
 
-abstract class AbstractHeader implements HeaderInterface
+abstract class AbstractHeader implements HeaderInterface,WellKnownHeader
 {
 	protected $name = "Content-Type";
 	protected $value;
+	/**
+	 * @var bool|null
+	 */
+	private $wasjoined;
 
-	public function __construct(?string $value = null)
+	public function __construct(?string $value = null, ?bool $wasjoined=false)
 	{
 		if ($value != null)
 		{
 			$this->value = $value;
 		}
+		$this->wasjoined = $wasjoined;
 	}
 
 
@@ -37,6 +42,11 @@ abstract class AbstractHeader implements HeaderInterface
 		return $this->name . ": " . $this->value;
 	}
 
+	public function __toString()
+	{
+		return $this->asString();
+	}
+
 	public function asArray(): array
 	{
 		return [$this->name => $this->value];
@@ -47,6 +57,17 @@ abstract class AbstractHeader implements HeaderInterface
 		$pos   = strpos($headerLine, ":");
 		$value = substr($headerLine, $pos + 1);
 		return $value;
+	}
+
+	/**
+	 * true if the header was joined together.
+	 * That happens if you add the same header multiple times to an headerlist.
+	 *
+	 * @return bool
+	 */
+	public function wasJoined(): bool
+	{
+		return $this->wasjoined;
 	}
 
 }

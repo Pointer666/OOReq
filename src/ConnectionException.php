@@ -1,7 +1,7 @@
 <?php
 namespace OOReq;
 
-class ConnectionException extends  Exception
+class ConnectionException extends OOreqException
 {
 
 }

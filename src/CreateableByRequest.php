@@ -4,7 +4,6 @@ namespace OOReq;
 
 
 use OOReq\Header\Headerlist;
-use OOReq\Type\TimePeriod;
 use OOReq\Response\ResponseOptionsInterface;
 
 interface CreateableByRequest
@@ -21,5 +20,5 @@ interface CreateableByRequest
 
 	public function RequestOptions(): ResponseOptionsInterface;
 
-	public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime);
+	public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, \DateInterval $RequestTime);
 }

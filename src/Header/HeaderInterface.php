@@ -11,5 +11,13 @@ interface HeaderInterface extends DataInterface
 
 	public function isEmpty(): bool;
 
-	public function asString():string;
+	public function asString(): string;
+
+	/**
+	 * true if the header was joined together.
+	 * That happens if you add the same header multiple times to an headerlist.
+	 *
+	 * @return bool
+	 */
+	public function wasJoined(): bool;
 }

@@ -2,7 +2,6 @@
 
 namespace OOReq;
 
-
 class RequestOptions implements RequestOptionsInterface
 {
 	/**
@@ -12,11 +11,17 @@ class RequestOptions implements RequestOptionsInterface
 	private $connectionTimeout = 0;
 	private $timeout = 0;
 	private $Referer;
+	private $Logger;
 
 	public function __construct()
 	{
 		$this->Referer = new URL();
-
+		$this->Logger  = new class extends \Psr\Log\AbstractLogger
+		{
+			public function log($level, $message, array $context = array())
+			{
+			}
+		};
 	}
 
 	public function timeout(): int
@@ -49,5 +54,15 @@ class RequestOptions implements RequestOptionsInterface
 	public function referer(): string
 	{
 		return $this->Referer->asString();
+	}
+
+	public function Logger(): \Psr\Log\LoggerInterface
+	{
+		return $this->Logger;
+	}
+
+	public function setLogger(\Psr\Log\LoggerInterface $Logger)
+	{
+		$this->Logger = $Logger;
 	}
 }

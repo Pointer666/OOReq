@@ -10,12 +10,10 @@ use OOReq\HTTPStatusCode;
 use OOReq\MIMEType;
 use OOReq\Response\AbstractResponse;
 use OOReq\Response\File;
-use OOReq\Response\FileTransformation;
 use OOReq\Payload;
 use OOReq\DataAsPOST;
 use OOReq\Request;
 use OOReq\Response\StringValue;
-use OOReq\Type\TimePeriod;
 use OOReq\URL;
 use PHPUnit\Framework\TestCase;
 
@@ -25,26 +23,32 @@ use PHPUnit\Framework\TestCase;
  * This tests require that the testserver is running. See ./resource/startServer.php
  *
  */
-class testBasics extends TestCase
+class IntegrationTest extends TestCase
 {
 	private const TESTHOST = 'localhost:8000';
+	private const TMPFILE = '/tmp/testfile.tmp';
 	/**
 	 * @var Request
 	 */
 	private $Request;
 	public static $pid;
 
+	/**
+	 *
+	 */
 	public static function setUpBeforeClass()
 	{
-		$command   = "cd " . BASEPATH . "/resource; php -S ".self::TESTHOST;
+		echo "starting local server\n";
+		$command   = "cd " . BASEPATH . "/resource; php -S " . self::TESTHOST;
 		$pid       = shell_exec(sprintf('%s > /dev/null 2>&1 & echo $!', $command));
 		self::$pid = $pid;
-		echo "PID: ".$pid;
+		echo "PID: " . $pid;
 	}
 
 	public static function tearDownAfterClass()
 	{
-		$cmd="kill ".self::$pid;
+		echo "stopping local server\n";
+		$cmd = "kill " . self::$pid;
 		echo $cmd;
 		shell_exec($cmd);
 	}
@@ -59,11 +63,11 @@ class testBasics extends TestCase
 	 */
 	public function testBasicGET()
 	{
-		$Request = new Request(new URL('http://' . self::TESTHOST . '/hallo'));
+		$Request = new Request(new URL('http://' . self::TESTHOST . '/hallo'), null, null, $this->_getDefaultOptions());
 		// Return the body as string
-		$result = $Request->getResponseAs(new StringValue());
+		$Result = $Request->getResponseAs(new StringValue());
 
-		$this->assertEquals('hallo', $result);
+		$this->assertEquals('hallo', (string)$Result);
 	}
 
 	public function testBasicPOST()
@@ -79,7 +83,7 @@ class testBasics extends TestCase
 
 		$Payload->add(new DataAsGET('getA', 'ValueA'));
 
-		$Request = $this->Request->newPOST($URL, $Payload);
+		$Request = $this->Request->newPOST($URL, $Payload,$this->_getDefaultOptions());
 
 		$Result = $Request->getResponseAs(new StringValue());
 
@@ -93,7 +97,8 @@ class testBasics extends TestCase
 
 		$Request = $this->Request->newPOST(
 			new URL('http://' . self::TESTHOST . '/postTestRAW.php'),
-			new Payload(new \OOReq\DataAsRawBodyPOST($content, $contentType))
+			new Payload(new \OOReq\DataAsRawBodyPOST($content, $contentType)),
+			$this->_getDefaultOptions()
 		);
 
 		$Result = $Request->getResponseAs(new StringValue());
@@ -107,15 +112,15 @@ class testBasics extends TestCase
 	 */
 	public function testBasicGET_withBasicAuth()
 	{
-		$Request = new Request(new URL('http://user:password@' . self::TESTHOST . '/basicAuth.php'));
+		$Request = new Request(new URL('http://user:password@' . self::TESTHOST . '/basicAuth.php'),null,null,$this->_getDefaultOptions());
 
-		// Return the body as StringValue with the StringValue Printer
+		// Return the body as StringValue
 		$result = $Request->getResponseAs(new StringValue());
 		$this->assertEquals('OK', $result);
 
 		$Request = new Request(new URL('http://user:WRONGpassword@' . self::TESTHOST . '/basicAuth.php'));
 
-		// Return the body as StringValue with the StringValue Printer
+		// Return the body as StringValue
 		$result = $Request->getResponseAs(new StringValue());
 		$this->assertEquals('Unknown password/user', $result);
 
@@ -127,9 +132,8 @@ class testBasics extends TestCase
 		$GETRequest = new Request(new URL('http://' . self::TESTHOST . "/bigFile.php"));
 
 		/** @var \SplFileObject $OutFile */
-		$OutFile = $GETRequest->getResponseAs(new File('/tmp/testFile', 'w+'));
+		$OutFile = $GETRequest->getResponseAs(new File(self::TMPFILE, 'w+'));
 		$this->assertInstanceof(\SplFileObject::class, $OutFile);
-
 	}
 
 	public function testBigFile_regular()
@@ -154,7 +158,9 @@ class testBasics extends TestCase
 				{
 					return ($Status->isOK()
 						&& $Headers->get(new Header('TestHeaderA'))->value() == 'testString'
-						&& $Headers->get(new Header('TestHeaderB'))->value() == 'another StringValue');
+						&& $Headers->get(new Header('TestHeaderB'))->value() == 'another StringValue'
+						&& $Headers->get(new Header('TestHeaderC'))->value() == 'A, B, C'
+					);
 				}
 			};
 
@@ -168,11 +174,16 @@ class testBasics extends TestCase
 		$headerName  = 'greatHeader';
 		$headerValue = 'greatValue';
 
-		$Payload = new Payload(new Header($headerName, $headerValue));
-		$Request = new Request(new Url('http://' . self::TESTHOST . '/returnHeader.php'), new GET(), $Payload);
 
-		$res = $Request->getResponseAs(new StringValue());
-		$this->assertEquals($headerName . ':' . $headerValue, $res);
+		$Request = new Request(
+			new Url('http://' . self::TESTHOST . '/returnHeader.php'),
+			new GET(),
+			new Payload(new Header($headerName, $headerValue))
+		);
+
+		$Res = $Request->getResponseAs(new StringValue());
+
+		$this->assertEquals($headerName . ':' . $headerValue, $Res);
 	}
 
 	public function testIsATeapot()
@@ -182,7 +193,7 @@ class testBasics extends TestCase
 		$this->assertTrue($Request->getResponseAs(
 			new class extends AbstractResponse
 			{
-				public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime)
+				public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, \DateInterval $RequestTime)
 				{
 					return $Status->isI_AM_A_TEAPOT();
 				}
@@ -207,15 +218,16 @@ class testBasics extends TestCase
 	 */
 	public function testFileUpload()
 	{
-		$File    = new SplFileObject("./resource/upfile.txt");
-		$Payload = new Payload(new \OOReq\FileAsPOST(
+		$filenema = BASEPATH . "/resource/upfile.txt";
+		$File     = new SplFileObject($filenema);
+		$Payload  = new Payload(new \OOReq\FileAsPOST(
 			'greatFile',
 			$File,
 			new MIMEType('text/plain')));
 
 		$TestPrinter = new class extends AbstractResponse
 		{
-			public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime)
+			public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, \DateInterval $RequestTime)
 			{
 
 				$bodyDecoded = json_decode($body, true);
@@ -244,7 +256,7 @@ class testBasics extends TestCase
 			$Request->getResponseAs(
 				new class extends AbstractResponse
 				{
-					public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, TimePeriod $RequestTime)
+					public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, \DateInterval $RequestTime)
 					{
 						$bodyArr = json_decode($body, true);
 						return (
@@ -264,7 +276,7 @@ class testBasics extends TestCase
 		$this->expectExceptionMessageRegExp("/^Resolving timed out/");
 		$URL = new URL("http://unknownhost/request?getA=hallo");
 
-		$Options = new \OOReq\RequestOptions();
+		$Options = $this->_getDefaultOptions();
 		$Options->setConnectionTimeout(1);
 
 		$Request = new Request($URL,
@@ -275,4 +287,21 @@ class testBasics extends TestCase
 
 		$res = $Request->getResponseAs(new StringValue());
 	}
+
+	private function _getDefaultOptions()
+	{
+		$Options = new \OOReq\RequestOptions();
+		$Options->setLogger(
+			new class extends \PSR\Log\AbstractLogger
+			{
+				public function log($level, $message, array $context = array())
+				{
+					echo $message."\n";
+				}
+			}
+		);
+		return $Options;
+	}
+
+
 }

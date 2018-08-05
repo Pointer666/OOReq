@@ -13,4 +13,10 @@ interface RequestOptionsInterface
 	public function setConnectionTimeout(int $mseconds);
 
 	public function referer(): string;
+
+	public function setReferer(URL $Referer);
+
+	public function Logger(): \Psr\Log\LoggerInterface;
+
+	public function setLogger(\Psr\Log\LoggerInterface $Logger);
 }

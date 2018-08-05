@@ -49,9 +49,9 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 				};
 			}
 
-			public function createByRequest($body, \OOReq\Header\Headerlist $Headers, \OOReq\HTTPStatusCode $Status, \OOReq\Type\TimePeriod $RequestTime)
+			public function createByRequest($body, \OOReq\Header\Headerlist $Headers, \OOReq\HTTPStatusCode $Status, \DateInterval $RequestTime)
 			{
-				return ["body" => $body, "Headers" => $Headers, "Status" => $Status, "RequestTime", $RequestTime];
+				return ["body" => $body, "Headers" => $Headers, "Status" => $Status, "RequestTime"=> $RequestTime];
 			}
 		};
 
@@ -88,9 +88,9 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 				};
 			}
 
-			public function createByRequest($body, \OOReq\Header\Headerlist $Headers, \OOReq\HTTPStatusCode $Status, \OOReq\Type\TimePeriod $RequestTime)
+			public function createByRequest($body, \OOReq\Header\Headerlist $Headers, \OOReq\HTTPStatusCode $Status, \DateInterval $RequestTime)
 			{
-				return ["body" => $body, "Headers" => $Headers, "Status" => $Status, "RequestTime", $RequestTime];
+				return ["body" => $body, "Headers" => $Headers, "Status" => $Status, "RequestTime"=> $RequestTime];
 			}
 		};
 
@@ -149,6 +149,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 		$this->assertInstanceOf(\OOReq\HTTPStatusCode::class, $response['Status']);
 		// Status should be 200 = HTTP:OK
 		$this->assertTrue($response['Status']->isOK());
+
+		$this->assertInstanceOf(\DateInterval::class,$response['RequestTime']);
 	}
 
 	/**

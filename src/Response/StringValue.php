@@ -2,10 +2,25 @@
 
 namespace OOReq\Response;
 
+use OOReq\Header\Headerlist;
+use OOReq\HTTPStatusCode;
+
 final class StringValue extends AbstractResponse
 {
-	public function createByRequest($body, $Header, $Status, $TImePeriod)
+	private $data = '';
+
+	public function __construct(?string $input=null)
 	{
-		return trim($body);
+		$this->data = $input;
+	}
+
+	public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, \DateInterval $RequestTime)
+	{
+		return new StringValue(trim($body));
+	}
+
+	public function __toString()
+	{
+		return $this->data;
 	}
 }
