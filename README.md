@@ -36,7 +36,7 @@ use OOReq\Response\String;
 # Default method is GET
 $Request = new Request(new Url('http://www.example.com'));
 
-$result = $Request->resultAs(new String());
+$result = $Request->getResponseAs(new String());
 ```
 
 Return the result as File.
@@ -49,7 +49,7 @@ use OOReq\Response\File;
 # Default method is GET
 $Request = new Request(new Url('http://www.example.com'));
 
-$File = $Request->resultAs(new File('/tmp/myFile'));
+$File = $Request->getResponseAs(new File('/tmp/myFile'));
 ```
 
 Perform a POST Request.
@@ -72,10 +72,32 @@ $Data = new Payload(
 );
 
 $Request = new Request($Url, new POST(), $Data);
-$result = $Request->resultAs(new String());
+$result = $Request->getResponseAs(new String());
 
 ```
 
+Using an PSR logger and set timeouts.
+```php
+<?php
+use OOReq\Request;
+use OOReq\Url;
+use OOReq\Response\String;
+use OOReq\RequestOptions;
+use Monolog\Logger;
+
+
+$Options = new RequestOptions();
+$Options->setLogger(new Logger());
+// Connection Timeout in ms
+$Options->connectionTimeout(1000);
+// Maximum execution time in ms
+$Options->settimeout(1000);
+# Default method is GET
+$Request = new Request(new Url('http://www.example.com'),null,null,$Options);
+
+$result = $Request->getResponseAs(new String());
+
+```
 
 Why should you use it?
 ======================
@@ -137,7 +159,7 @@ class getSth
     {
         $Payload = new Payload(new DataAsGet('param', $param));
         $Request = $this->Request->newGET($this->Url, $Payload); 
-        $result = $Request->resultAs(new StringValue());
+        $result = $Request->getResponseAs(new StringValue());
         # 
         # Here comes some error handling
         #
@@ -146,8 +168,8 @@ class getSth
 }
 ```
 In this case you just have to mock the request object and define the result of
-the methods new(), which should return itself, and resultAs().
+the methods newGET(), which should return itself, and getResponseAs().
 
 Another reason is that OOReq encourages you to split the creation of the request
-and the interpretation of the result. That leads to smaler, easier to test 
+and the interpretation of the result. That leads to smaller, easier to test 
 classes.

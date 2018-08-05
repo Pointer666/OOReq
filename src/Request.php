@@ -273,14 +273,14 @@ class Request implements RequestInterface
 			$this->_performCurlRequest();
 			$this->_log('debug', 'Got header: [' . $this->_formatHeaderLines($headerLines) . "]");
 			$this->TimePeriod = $Start->diff(\DateTime::createFromFormat('0.u00 U', microtime()));
-			$this->_log('debug', 'Request took ' . $this->TimePeriod->f . ' microseconds');
+			$this->_log('info', 'Request to ' . $this->CURLOptions->URL()->asString() . ' took ' . ($this->TimePeriod->s + $this->TimePeriod->f) . ' microseconds');
 		}
 		return $Transformation->createByRequest($this->_getResponseBody(), new HeaderList(...$headerLines), $this->_getStatus(), $this->TimePeriod);
 	}
 
 	private function _getFormattedCurlOptions(): string
 	{
-		return "curloptions: [URL: " . $this->CURLOptions->URL()->asString() ."\n". $this->CURLOptions->asString(). "]";
+		return "curloptions: [URL: " . $this->CURLOptions->URL()->asString() . "\n" . $this->CURLOptions->asString() . "]";
 	}
 
 	private function _log($level, $msg)
