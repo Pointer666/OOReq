@@ -51,7 +51,7 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 
 			public function createByRequest($body, \OOReq\Header\Headerlist $Headers, \OOReq\HTTPStatusCode $Status, \DateInterval $RequestTime)
 			{
-				return ["body" => $body, "Headers" => $Headers, "Status" => $Status, "RequestTime"=> $RequestTime];
+				return ["body" => $body, "Headers" => $Headers, "Status" => $Status, "RequestTime" => $RequestTime];
 			}
 		};
 
@@ -90,7 +90,7 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 
 			public function createByRequest($body, \OOReq\Header\Headerlist $Headers, \OOReq\HTTPStatusCode $Status, \DateInterval $RequestTime)
 			{
-				return ["body" => $body, "Headers" => $Headers, "Status" => $Status, "RequestTime"=> $RequestTime];
+				return ["body" => $body, "Headers" => $Headers, "Status" => $Status, "RequestTime" => $RequestTime];
 			}
 		};
 
@@ -150,7 +150,7 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 		// Status should be 200 = HTTP:OK
 		$this->assertTrue($response['Status']->isOK());
 
-		$this->assertInstanceOf(\DateInterval::class,$response['RequestTime']);
+		$this->assertInstanceOf(\DateInterval::class, $response['RequestTime']);
 	}
 
 	/**
@@ -183,6 +183,9 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl->expects($this->exactly(1))
 			->method('new')
@@ -217,6 +220,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 		$ExpectedCurlOptions->setOpt(CURLOPT_REFERER, 'http://curlopt_referer.test');
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl->expects($this->exactly(1))
 			->method('new')
@@ -244,6 +249,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 		$ExpectedCurlOptions->setOpt(CURLOPT_REFERER, 'http://curlopt_referer.test');
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl->expects($this->exactly(1))
 			->method('new')
@@ -274,6 +281,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 		$ExpectedCurlOptions->setOpt(CURLOPT_REFERER, 'http://curlopt_referer.test');
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl->expects($this->exactly(1))
 			->method('new')
@@ -299,6 +308,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 		$ExpectedCurlOptions->setOpt(CURLOPT_REFERER, 'http://curlopt_referer.test');
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl = $this->_getCURL();
 		$Curl->expects($this->exactly(1))
@@ -328,6 +339,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl = $this->_getCURL();
 		$Curl->expects($this->exactly(1))
@@ -359,6 +372,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl = $this->_getCURL();
 		$Curl->expects($this->exactly(1))
@@ -390,6 +405,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl = $this->_getCURL();
 		$Curl->expects($this->exactly(1))
@@ -399,7 +416,7 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 		$RQOptions = new \OOReq\RequestOptions();
 		$RQOptions->setReferer(new URL($referer));
 
-		$Request  = new \OOReq\Request($Url, new PUT(), null, $RQOptions, $Curl);
+		$Request = new \OOReq\Request($Url, new PUT(), null, $RQOptions, $Curl);
 
 		// Changing the option object should not change the Request;
 		$RQOptions->setReferer(new URL('somethingDifferent'));
@@ -429,6 +446,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl = $this->_getCURL();
 		$Curl->expects($this->exactly(1))
@@ -462,6 +481,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 		$ExpectedCurlOptions->setOpt(CURLOPT_REFERER, 'http://curlopt_referer.test');
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl = $this->_getCURL();
 		$Curl->expects($this->exactly(1))
@@ -494,6 +515,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 		$ExpectedCurlOptions->setOpt(CURLOPT_REFERER, 'http://curlopt_referer.test');
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$Curl = $this->_getCURL();
 		$Curl->expects($this->exactly(1))
@@ -587,6 +610,8 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 
 		$ExpectedCurlOptions->setOpt(CURLOPT_HEADERFUNCTION, function () {
 		});
+		$ExpectedCurlOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$ExpectedCurlOptions->setOpt(CURLOPT_MAXREDIRS,10); //
 
 		$body   = "RESULT";
 		$result = "Connection: keep-alive\n"

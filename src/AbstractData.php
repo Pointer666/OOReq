@@ -14,6 +14,17 @@ abstract class AbstractData implements DataInterface
 		$this->value = $value;
 	}
 
+	public function createFromArray(array $array): array
+	{
+		$out = [];
+		foreach ($array as $key => $value)
+		{
+			$name  = get_class($this);
+			$out[] = new $name($key, $value);
+		}
+		return $out;
+	}
+
 	public function name(): string
 	{
 		return urlencode($this->key);

@@ -83,7 +83,7 @@ class IntegrationTest extends TestCase
 
 		$Payload->add(new DataAsGET('getA', 'ValueA'));
 
-		$Request = $this->Request->newPOST($URL, $Payload,$this->_getDefaultOptions());
+		$Request = $this->Request->newPOST($URL, $Payload, $this->_getDefaultOptions());
 
 		$Result = $Request->getResponseAs(new StringValue());
 
@@ -112,7 +112,7 @@ class IntegrationTest extends TestCase
 	 */
 	public function testBasicGET_withBasicAuth()
 	{
-		$Request = new Request(new URL('http://user:password@' . self::TESTHOST . '/basicAuth.php'),null,null,$this->_getDefaultOptions());
+		$Request = new Request(new URL('http://user:password@' . self::TESTHOST . '/basicAuth.php'), null, null, $this->_getDefaultOptions());
 
 		// Return the body as StringValue
 		$result = $Request->getResponseAs(new StringValue());
@@ -269,6 +269,44 @@ class IntegrationTest extends TestCase
 		);
 	}
 
+	/**
+	 *
+	 */
+	public function testRedirect()
+	{
+		$URL     = new URL('http://' . self::TESTHOST . "/redirect.php?max=5");
+		$Request = new Request($URL);
+
+		$response = $Request->getResponseAs(new class extends AbstractResponse
+		{
+
+			public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, \DateInterval $RequestTime)
+			{
+				$Location = $Headers->get(new Header('Location'));
+				return ['body' => trim($body), 'LocationHeader' => $Location];
+			}
+		});
+
+		$this->assertEquals('Content of redirected Target', $response['body']);
+		$redirects = explode(',', $response['LocationHeader']->value());
+		$this->assertCount(5,$redirects);
+	}
+
+	/**
+	 *
+	 */
+	public function testTooManyRedirects()
+	{
+		$this->expectException(\OOReq\ConnectionException::class);
+		$this->expectExceptionCode(47); // Curl ErrorCode
+
+		// Redirect 12 times. 10 should be the maximum
+		$URL     = new URL('http://' . self::TESTHOST . "/redirect.php?max=12");
+		$Request = new Request($URL);
+
+		$response = $Request->getResponseAs(new StringValue());
+
+	}
 
 	public function testCurlOptions_timeout()
 	{
@@ -296,7 +334,7 @@ class IntegrationTest extends TestCase
 			{
 				public function log($level, $message, array $context = array())
 				{
-					echo $message."\n";
+					echo $message . "\n";
 				}
 			}
 		);

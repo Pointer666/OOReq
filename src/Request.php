@@ -84,6 +84,10 @@ class Request implements RequestInterface
 
 		$this->CURLOptions = new CURLOptions($Url);
 
+		// Following redirects until a depth of 10
+		$this->CURLOptions->setOpt(CURLOPT_FOLLOWLOCATION, true);
+		$this->CURLOptions->setOpt(CURLOPT_MAXREDIRS, 10);
+
 		if (is_null($CURL))
 		{
 			$this->CURL = new CURL();

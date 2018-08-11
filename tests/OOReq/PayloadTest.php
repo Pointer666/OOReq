@@ -88,5 +88,4 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
 		$postDataArray = $Payload->getParametersByDataType(new DataAsPOST());
 		$this->assertEquals([$PostData, $PostData2], $postDataArray);
 	}
-
 }
