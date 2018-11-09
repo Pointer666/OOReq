@@ -3,7 +3,7 @@
 namespace OOReq\HTTPMethod;
 
 
-class GET implements MethodInterface
+class GET implements HTTPMethod
 {
 
 	public function asString(): string

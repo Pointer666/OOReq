@@ -3,7 +3,7 @@
 namespace OOReq\HTTPMethod;
 
 
-class PATCH implements MethodInterface
+class PATCH implements HTTPMethod
 {
 
 	public function asString(): string

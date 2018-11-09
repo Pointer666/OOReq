@@ -40,6 +40,10 @@ class RequestOptions implements RequestOptionsInterface
 		return $this->connectionTimeout;
 	}
 
+	/**
+	 * Set connection timeout in mseconds
+	 * @param int $mseconds
+	 */
 	public function setConnectionTimeout(int $mseconds)
 	{
 		$this->connectionTimeout = $mseconds;

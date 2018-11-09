@@ -1,7 +1,9 @@
 <?php
 
-namespace OOReq;
+namespace OOReq\Data;
 
+
+use OOReq\MIMEType;
 
 final class FileAsPOST extends AbstractData
 {
@@ -18,5 +20,10 @@ final class FileAsPOST extends AbstractData
 		}
 		$File = new \CURLFile($File->getPathname(), $MIMEType->asString(), $File->getFilename());
 		parent::__construct($key, $File);
+	}
+
+	public function isPOST(): bool
+	{
+		return true;
 	}
 }

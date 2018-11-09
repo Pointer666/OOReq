@@ -26,7 +26,7 @@ class HeaderlistTest extends \PHPUnit\Framework\TestCase
 	}
 
 	/**
-	 * @throws NotFoundException
+	 * @throws NotFound
 	 */
 	public function testRemoveheader()
 	{
@@ -63,7 +63,7 @@ class HeaderlistTest extends \PHPUnit\Framework\TestCase
 	/**
 	 * If there are multiple Headers with the same name, they will be
 	 * joined.
-	 * @throws NotFoundException
+	 * @throws NotFound
 	 */
 	public function testGetJoinedHeader()
 	{
@@ -81,7 +81,7 @@ class HeaderlistTest extends \PHPUnit\Framework\TestCase
 	}
 
 	/**
-	 * @throws NotFoundException
+	 * @throws NotFound
 	 */
 	public function testRemoveJoinedHeader()
 	{
@@ -96,7 +96,7 @@ class HeaderlistTest extends \PHPUnit\Framework\TestCase
 	}
 
 	/**
-	 * @throws NotFoundException
+	 * @throws NotFound
 	 */
 	public function testJoinedHeader()
 	{

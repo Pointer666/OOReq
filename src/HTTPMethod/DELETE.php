@@ -3,7 +3,7 @@
 namespace OOReq\HTTPMethod;
 
 
-class DELETE implements MethodInterface
+class DELETE implements HTTPMethod
 {
 
 	public function asString(): string

@@ -3,7 +3,7 @@
 namespace OOReq\Header;
 
 
-abstract class AbstractHeader implements HeaderInterface,WellKnownHeader
+abstract class AbstractHTTPHeader implements HTTPHeader,WellKnownHeader
 {
 	protected $name = "Content-Type";
 	protected $value;
@@ -70,4 +70,23 @@ abstract class AbstractHeader implements HeaderInterface,WellKnownHeader
 		return $this->wasjoined;
 	}
 
+	public function isGET(): bool
+	{
+		return false;
+	}
+
+	public function isPOST(): bool
+	{
+		return false;
+	}
+
+	public function isRAWPOST(): bool
+	{
+		return false;
+	}
+
+	public function isHeader(): bool
+	{
+		return true;
+	}
 }

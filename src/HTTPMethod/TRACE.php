@@ -3,7 +3,7 @@
 namespace OOReq\HTTPMethod;
 
 
-class TRACE implements MethodInterface
+class TRACE implements HTTPMethod
 {
 
 	public function asString(): string

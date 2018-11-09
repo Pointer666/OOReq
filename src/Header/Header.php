@@ -3,7 +3,7 @@
 namespace OOReq\Header;
 
 
-class Header implements HeaderInterface
+class Header implements HTTPHeader
 {
 	/**
 	 * @var string
@@ -36,7 +36,7 @@ class Header implements HeaderInterface
 		return $this->value;
 	}
 
-	public function createByString(string $headerLine): HeaderInterface
+	public function createByString(string $headerLine): HTTPHeader
 	{
 		$pos = strpos($headerLine, ":");
 		if ($pos === false)
@@ -75,5 +75,25 @@ class Header implements HeaderInterface
 	public function wasJoined(): bool
 	{
 		return $this->wasjoined;
+	}
+
+	public function isGET(): bool
+	{
+		return false;
+	}
+
+	public function isPOST(): bool
+	{
+		return false;
+	}
+
+	public function isRAWPOST(): bool
+	{
+		return false;
+	}
+
+	public function isHeader(): bool
+	{
+		return true;
 	}
 }

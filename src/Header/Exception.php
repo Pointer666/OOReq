@@ -5,7 +5,7 @@ namespace OOReq\Header;
 
 use OOReq\OOreqException;
 
-class NotFoundException extends OOreqException
+class NotFound extends OOreqException
 {
 
 }

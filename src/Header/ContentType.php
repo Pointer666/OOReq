@@ -3,12 +3,12 @@
 namespace OOReq\Header;
 
 
-class ContentType extends AbstractHeader
+class ContentType extends AbstractHTTPHeader
 {
 	protected $name = "Content-Type";
 
 
-	public function createByString(string $headerLine): HeaderInterface
+	public function createByString(string $headerLine): HTTPHeader
 	{
 		return new ContentType($this->_getValueFromString($headerLine));
 	}

@@ -3,11 +3,17 @@
 namespace OOReq;
 
 
+use OOReq\Data\DataAsGET;
+use OOReq\Data\DataAsPOST;
+use OOReq\Data\DataAsRawBodyPOST;
 use OOReq\Header\Header;
 
 class PayloadTest extends \PHPUnit\Framework\TestCase
 {
 
+	/**
+	 *
+	 */
 	public function testAdd()
 	{
 		$Payload = new Payload(new DataAsGET('a', 'a'));
@@ -15,11 +21,14 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
 		$this->assertTrue($Payload->containsDataType(new DataAsGET()));
 		$this->assertFalse($Payload->containsDataType(new DataAsPOST()));
 
-		$Payload->add(new DataAsPOST('b', 'b'));
+		$NewPayload = $Payload->add(new DataAsPOST('b', 'b'));
 
-		$this->assertTrue($Payload->containsDataType(new DataAsPOST()));
+		$this->assertTrue($NewPayload->containsDataType(new DataAsPOST()));
 	}
 
+	/**
+	 *
+	 */
 	public function testAdd_EmptyObject()
 	{
 		$this->expectException(\UnexpectedValueException::class, 'You may not add an empty Data Object');
@@ -30,6 +39,9 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
 
 	}
 
+	/**
+	 *
+	 */
 	public function testAdd_mixRawPostDataAndUrlencodedPostData()
 	{
 		$this->expectException(\UnexpectedValueException::class);
@@ -41,13 +53,16 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
 	}
 
 
+	/**
+	 *
+	 */
 	public function testIsEmpty()
 	{
 		$Payload = new Payload();
 		$this->assertTrue($Payload->isEmpty());
 
-		$Payload->add(new DataAsGET('a', 'a'));
-		$this->assertFalse($Payload->isEmpty());
+		$NewPayload=$Payload->add(new DataAsGET('a', 'a'));
+		$this->assertFalse($NewPayload->isEmpty());
 
 	}
 
@@ -70,6 +85,9 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
 		$this->assertFalse($Payload->containsDataType(new DataAsRawBodyPOST()));
 	}
 
+	/**
+	 *
+	 */
 	public function testGetParametersByDataType()
 	{
 		$GetData   = new DataAsGET('a', 'a');

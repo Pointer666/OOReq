@@ -3,11 +3,11 @@
 namespace OOReq\Header;
 
 
-use OOReq\DataInterface;
+use OOReq\Data\DataInterface;
 
-interface HeaderInterface extends DataInterface
+interface HTTPHeader extends DataInterface
 {
-	public function createByString(string $headerLine): HeaderInterface;
+	public function createByString(string $headerLine): HTTPHeader;
 
 	public function isEmpty(): bool;
 

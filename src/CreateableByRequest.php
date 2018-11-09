@@ -13,7 +13,6 @@ interface CreateableByRequest
 	 * Method is called when useStream() == true
 	 * Should return an Callback which is responsible to handle
 	 * the read data. Must return the exact bytes written.
-	 * @param $data
 	 * @return callable
 	 */
 	public function streamCallback(): callable;

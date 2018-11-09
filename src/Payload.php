@@ -3,11 +3,14 @@
 namespace OOReq;
 
 
-use OOReq\Header\HeaderInterface;
+use OOReq\Data\DataAsPOST;
+use OOReq\Data\DataAsRawBodyPOST;
+use OOReq\Data\DataInterface;
 
 class Payload implements PayloadInterface
 {
 	private $data = [];
+	private $typeIndex = [];
 
 	private const POST = 'POST';
 	private const HEADER = 'HEADER';
@@ -16,78 +19,86 @@ class Payload implements PayloadInterface
 
 	/**
 	 * Payload constructor.
+	 * @param null[]|DataInterface[] $Data
 	 */
 	public function __construct(?DataInterface ...$Data)
 	{
 		if (is_array($Data))
 		{
-			$this->add(...$Data);
+			foreach ($Data as $key => $Param)
+			{
+				if ($Param->isEmpty())
+				{
+					$msg = 'Trying to add empty data object of type: ' . $this->_getType($Param);
+					throw new \UnexpectedValueException($msg, 1);
+				}
+
+				if ($Param->isRAWPOST() && $this->containsDataType(new DataAsPOST())
+					|| $Param->isPOST() && $this->containsDataType(new DataAsRawBodyPOST())
+				)
+				{
+					throw new \UnexpectedValueException('You may not mix urlencoded POSTdata and rawPOSTdata', 2);
+				}
+
+				$type = $this->_getType($Param);
+				if (key_exists($type, $this->typeIndex))
+				{
+					$this->typeIndex[$type][] = $key;
+				}
+				else
+				{
+					$this->typeIndex[$type] = [$key];
+				}
+			}
+			$this->data = $Data;
 		}
 	}
 
 
-	private function _getType($Param)
+	private function _getType(DataInterface $Param)
 	{
-		$classType = 'unknown';
 		switch (true)
 		{
-			case  is_subclass_of($Param, HeaderInterface::class, false) || is_a($Param, HeaderInterface::class, false):
-				$classType = self::HEADER;
-				break;
-			case is_subclass_of($Param, DataAsGET::class, false) || is_a($Param, DataAsGET::class, false):
-				$classType = self::GET;
-				break;
-			case  is_subclass_of($Param, DataAsRawBodyPOST::class, false) || is_a($Param, DataAsRawBodyPOST::class, false):
-				$classType = self::RAWPOST;
-				break;
-			case is_subclass_of($Param, DataAsPOST::class, false) || is_a($Param, DataAsPOST::class, false) ||
-				is_a($Param, FileAsPOST::class):
-				$classType = self::POST;
-				break;
+			case $Param->isRAWPOST():
+				return self::RAWPOST;
+			case $Param->isPOST():
+				return self::POST;
+			case $Param->isGET():
+				return self::GET;
+			case $Param->isHeader():
+				return self::HEADER;
 		}
 
-		return $classType;
+		return "unknown";
 	}
 
-	public function add(DataInterface ...$Data): void
+
+	public function add(DataInterface ...$Data): PayloadInterface
 	{
-		foreach ($Data as $Param)
-		{
-			if ($Param->isEmpty())
-			{
-				throw new \UnexpectedValueException('Trying to add empty data object of type: ' . $this->_getType($Param), 1);
-			}
+		$newData = array_merge($this->data, $Data);
 
-			$classType = $this->_getType($Param);
-
-			if ($classType == self::POST && key_exists(self::RAWPOST, $this->data)
-				|| $classType == self::RAWPOST && key_exists(self::POST, $this->data)
-			)
-			{
-				throw new \UnexpectedValueException('You may not mix urlencoded POSTdata and rawPOSTdata', 2);
-			}
-			if (key_exists($classType, $this->data))
-			{
-				$this->data[$classType][] = $Param;
-			}
-			else
-			{
-				$this->data[$classType] = [$Param];
-			}
-		}
+		return new Payload(...$newData);
 	}
 
 
 	public function getParametersByDataType(DataInterface $Data): array
 	{
-		$type = $this->_getType($Data);
-		return $this->data[$type] ?? [];
+		if ($this->containsDataType($Data) == false)
+		{
+			return [];
+		}
+
+		$out = [];
+		foreach ($this->typeIndex[$this->_getType($Data)] as $key)
+		{
+			$out[] = $this->data[$key];
+		}
+		return $out;
 	}
 
 	public function containsDataType(DataInterface $Data): bool
 	{
-		$type = $this->_getType($Data);
-		return key_exists($type, $this->data);
+		return key_exists($this->_getType($Data), $this->typeIndex);
 	}
 
 	public function isEmpty(): bool

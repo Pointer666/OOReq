@@ -3,7 +3,7 @@
 namespace OOReq\HTTPMethod;
 
 
-class CONNECT implements MethodInterface
+class CONNECT implements HTTPMethod
 {
 
 	public function asString(): string

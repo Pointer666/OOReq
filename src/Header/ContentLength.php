@@ -3,11 +3,11 @@
 namespace OOReq\Header;
 
 
-class ContentLength extends AbstractHeader
+class ContentLength extends AbstractHTTPHeader
 {
 	protected $name = "Content-Length";
 
-	public function createByString(string $headerLine): HeaderInterface
+	public function createByString(string $headerLine): HTTPHeader
 	{
 		return new ContentLength($this->_getValueFromString($headerLine));
 	}

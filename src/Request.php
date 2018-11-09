@@ -5,15 +5,20 @@ namespace OOReq;
 use OOReq\CURL\CURL;
 use OOReq\CURL\CURLInterface;
 use OOReq\CURL\CURLOptions;
+use OOReq\Data\DataAsGET;
+use OOReq\Data\DataAsPOST;
+use OOReq\Data\DataAsRawBodyPOST;
+use OOReq\Data\DataInterface;
+use OOReq\Data\FileAsPOST;
 use OOReq\Header\ContentLength;
 use OOReq\Header\Header;
-use OOReq\Header\HeaderInterface;
+use OOReq\Header\HTTPHeader;
 use OOReq\Header\Headerlist;
 use OOReq\HTTPMethod\CONNECT;
 use OOReq\HTTPMethod\DELETE;
 use OOReq\HTTPMethod\GET;
 use OOReq\HTTPMethod\HEAD;
-use OOReq\HTTPMethod\MethodInterface;
+use OOReq\HTTPMethod\HTTPMethod;
 use OOReq\HTTPMethod\OPTIONS;
 use OOReq\HTTPMethod\PATCH;
 use OOReq\HTTPMethod\POST;
@@ -27,7 +32,7 @@ class Request implements RequestInterface
 	 */
 	private $Url;
 	/**
-	 * @var MethodInterface
+	 * @var HTTPMethod
 	 */
 	private $HTTPMethod;
 	/**
@@ -42,6 +47,7 @@ class Request implements RequestInterface
 
 	private $TimePeriod;
 	private $CURLOptions;
+	private $RequestOptions;
 
 	/**
 	 * @var CURLInterface
@@ -49,11 +55,12 @@ class Request implements RequestInterface
 	private $CURL;
 	private $wasInitialized = false;
 
-	public function __construct(?URL $Url = null,
-								?MethodInterface $HTTPMethod = null,
-								?PayloadInterface $Payload = null,
-								?RequestOptionsInterface $RequestOptions = null,
-								?CURLInterface $CURL = null)
+	public function __construct(
+		?URL $Url = null,
+		?HTTPMethod $HTTPMethod = null,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null,
+		?CURLInterface $CURL = null)
 	{
 		if (is_null($Url))
 		{
@@ -113,7 +120,7 @@ class Request implements RequestInterface
 		return clone $this->Url;
 	}
 
-	public function HTTPMethod(): MethodInterface
+	public function HTTPMethod(): HTTPMethod
 	{
 		return clone $this->HTTPMethod;
 	}
@@ -133,8 +140,8 @@ class Request implements RequestInterface
 			$RAWPostData = $this->Payload->getParametersByDataType($PostRawData)[0]; // There may only be one RawPostData Object
 			$this->CURLOptions->setOpt(CURLOPT_POSTFIELDS, $RAWPostData->value());
 
-			$this->Payload->add($RAWPostData->contentType());
-			$this->Payload->add(new ContentLength($RAWPostData->length()));
+			$this->Payload = $this->Payload->add($RAWPostData->contentType());
+			$this->Payload = $this->Payload->add(new ContentLength($RAWPostData->length()));
 			return;
 		}
 
@@ -142,7 +149,7 @@ class Request implements RequestInterface
 		$postFields         = [];
 		if ($this->Payload->containsDataType($PostUrlencodedData))
 		{
-			/** @var \OOReq\DataAsPOST $Item */
+			/** @var \OOReq\Data\DataAsPOST $Item */
 			foreach ($this->Payload->getParametersByDataType($PostUrlencodedData) as $Item)
 			{
 				$postFields = array_merge($postFields, $Item->asArray());
@@ -193,19 +200,22 @@ class Request implements RequestInterface
 	}
 
 	/**
-	 * @return CURLOptions
+	 * @return void
 	 */
-	private function _init()
+	private function _init(): void
 	{
 		$this->CURLOptions = $this->_recreateCURLOptionsURLWithGETParameters();
 
-		if ($this->HTTPMethod instanceof PUT || $this->HTTPMethod instanceof POST || $this->Payload->containsDataType(new FileAsPOST()))
+		if ($this->HTTPMethod instanceof PUT
+			|| $this->HTTPMethod instanceof POST
+			|| $this->Payload->containsDataType(new FileAsPOST()))
 		{
 			$this->CURLOptions->setOpt(CURLOPT_POST, true);
 		}
 
 		// Set unusual Methods
-		if ($this->HTTPMethod instanceof POST == false && $this->HTTPMethod instanceof GET == false)
+		if ($this->HTTPMethod instanceof POST == false
+			&& $this->HTTPMethod instanceof GET == false)
 		{
 			$this->CURLOptions->setOpt(CURLOPT_CUSTOMREQUEST, $this->HTTPMethod->asString());
 		}
@@ -305,7 +315,7 @@ class Request implements RequestInterface
 		{
 			$this->_log('error', 'curl error[' . $Curl->error() . "][" . $Curl->errno() . "] " . $this->_getFormattedCurlOptions());
 			// an curl error occured
-			throw new ConnectionException($Curl->error(), $Curl->errno());
+			throw new ConnectionError($Curl->error(), $Curl->errno());
 		}
 
 		$bodyStart = strpos($this->response, "\r\n\r\n");
@@ -335,7 +345,7 @@ class Request implements RequestInterface
 	private function _setHeader()
 	{
 		$headers = [];
-		/** @var HeaderInterface $Header */
+		/** @var HTTPHeader $Header */
 		foreach ($this->Payload->getParametersByDataType(new Header()) as $Header)
 		{
 			$headers[] = $Header->asString();
@@ -351,60 +361,111 @@ class Request implements RequestInterface
 		}
 	}
 
-	public function newGET(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	public function newGET(
+		URL $Url,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null
+	): RequestInterface
 	{
 		return $this->new($Url, new GET(), $Payload, $RequestOptions);
 	}
 
-	public function newPOST(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	public function newPOST(
+		URL $Url,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null
+	): RequestInterface
 	{
 		return $this->new($Url, new POST(), $Payload, $RequestOptions);
 	}
 
-	public function newPUT(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	public function newPUT(
+		URL $Url,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null
+	): RequestInterface
 	{
 		return $this->new($Url, new PUT(), $Payload, $RequestOptions);
 	}
 
-	public function newDELETE(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	public function newDELETE(
+		URL $Url,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null
+	): RequestInterface
 	{
 		return $this->new($Url, new DELETE(), $Payload, $RequestOptions);
 	}
 
-	public function newCONNECT(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	public function newCONNECT(
+		URL $Url,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null
+	): RequestInterface
 	{
 		return $this->new($Url, new CONNECT(), $Payload, $RequestOptions);
 	}
 
-	public function newHEAD(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	public function newHEAD(
+		URL $Url,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null
+	): RequestInterface
 	{
 		return $this->new($Url, new HEAD(), $Payload, $RequestOptions);
 	}
 
-	public function newOPTIONS(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	public function newOPTIONS(
+		URL $Url,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null
+	): RequestInterface
 	{
 		return $this->new($Url, new OPTIONS(), $Payload, $RequestOptions);
 	}
 
-	public function newPATCH(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	public function newPATCH(
+		URL $Url,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null
+	): RequestInterface
 	{
 		return $this->new($Url, new PATCH(), $Payload, $RequestOptions);
 	}
 
-	public function newTRACE(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	public function newTRACE(
+		URL $Url,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null
+	): RequestInterface
 	{
 		return $this->new($Url, new TRACE(), $Payload, $RequestOptions);
 	}
 
 	/**
+	 * Create a new request by reusing everything but the payload
+	 * @param PayloadInterface $Payload
+	 * @return RequestInterface
+	 */
+	public function exchangePayload(PayloadInterface $Payload): RequestInterface
+	{
+		return $this->new($this->Url, $this->HTTPMethod, $Payload, $this->RequestOptions);
+	}
+
+	/**
 	 * Creates a new Request object from a prototype.
 	 * @param URL $Url
-	 * @param null|MethodInterface $HTTPMethod If null the value from the prototype is used
+	 * @param null|HTTPMethod $HTTPMethod If null the value from the prototype is used
 	 * @param null|PayloadInterface $Payload If null the value from the prototype is used
 	 * @param null|RequestOptionsInterface $RequestOptions If null the value from the prototype is used
 	 * @return RequestInterface
 	 */
-	public function new(URL $Url, ?MethodInterface $HTTPMethod = null, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface
+	public function new(
+		URL $Url,
+		?HTTPMethod $HTTPMethod = null,
+		?PayloadInterface $Payload = null,
+		?RequestOptionsInterface $RequestOptions = null
+	): RequestInterface
 	{
 		if (is_null($HTTPMethod))
 		{
@@ -438,5 +499,6 @@ class Request implements RequestInterface
 		}
 		return $out;
 	}
+
 }
 

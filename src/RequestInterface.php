@@ -3,11 +3,11 @@
 namespace OOReq;
 
 
-use OOReq\HTTPMethod\MethodInterface;
+use OOReq\HTTPMethod\HTTPMethod;
 
 interface RequestInterface
 {
-	public function new(URL $Url, ?MethodInterface $HTTPMethod = null, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface;
+	public function new(URL $Url, ?HTTPMethod $HTTPMethod = null, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface;
 
 	public function newGET(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface;
 
@@ -27,11 +27,13 @@ interface RequestInterface
 
 	public function newTRACE(URL $Url, ?PayloadInterface $Payload = null, ?RequestOptionsInterface $RequestOptions = null): RequestInterface;
 
+	public function exchangePayload(PayloadInterface $Payload): RequestInterface;
+
 	public function getResponseAs(CreateableByRequest $Transformation);
 
 	public function URL(): URL;
 
-	public function HTTPMethod(): MethodInterface;
+	public function HTTPMethod(): HTTPMethod;
 
 	public function Payload(): PayloadInterface;
 

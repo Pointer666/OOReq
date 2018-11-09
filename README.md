@@ -1,6 +1,10 @@
 OOReq
 =====
-A object oriented wrapper for CURL. (Not stable - WIP)
+A object oriented wrapper for cURL. This is not a
+fully featured HTTP Client. If you need that, use guzzle ;-)
+
+(Not stable - WIP)
+
 
 Theory of operation
 ===================
@@ -31,12 +35,11 @@ Perform a GET Request and return the result as string.
 <?php
 use OOReq\Request;
 use OOReq\Url;
-use OOReq\Response\String;
 
 # Default method is GET
 $Request = new Request(new Url('http://www.example.com'));
 
-$result = $Request->getResponseAs(new String());
+$result = $Request->getResponseAs(new \OOReq\Response\StringValue());
 ```
 
 Return the result as File.
@@ -60,7 +63,7 @@ use OOReq\Request;
 use OOReq\Url;
 use OOReq\HTTPMethod\POST;
 use OOReq\Payload;
-use OOReq\DataAsPOST;
+use OOReq\Data\DataAsPOST;
 use OOReq\Response\String;
 
 $Url = new Url('http://www.somewhere.url');
@@ -72,7 +75,30 @@ $Data = new Payload(
 );
 
 $Request = new Request($Url, new POST(), $Data);
-$result = $Request->getResponseAs(new String());
+$result = $Request->getResponseAs(new \OOReq\Response\StringValue());
+
+```
+
+Sending a File
+
+```php
+<?php
+use OOReq\Request;
+use OOReq\Url;
+use OOReq\HTTPMethod\POST;
+use OOReq\Payload;
+use OOReq\Data\FileAsPOST;
+use OOReq\Response\String;
+
+$Url = new Url('http://www.somewhere.url');
+
+# Preparing the payload.
+$Data = new Payload(
+	new FileAsPOST('filename', new \SplFileObject('testfile.txt','r'), new \OOReq\MIMEType())
+);
+
+$Request = new Request($Url, new POST(), $Data);
+$result = $Request->getResponseAs(new \OOReq\Response\StringValue());
 
 ```
 
@@ -95,7 +121,7 @@ $Options->settimeout(1000);
 # Default method is GET
 $Request = new Request(new Url('http://www.example.com'),null,null,$Options);
 
-$result = $Request->getResponseAs(new String());
+$result = $Request->getResponseAs(new \OOReq\Response\StringValue());
 
 ```
 
@@ -141,7 +167,7 @@ How to avoid this? Take a look at the following Example
 use OOReq\RequestInterface;
 use OOReq\Url;
 use OOReq\Payload;
-use OOReq\DataAsGET;
+use OOReq\Data\DataAsGET;
 use OOReq\Response\StringValue;
 
 class getSth

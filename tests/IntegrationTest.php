@@ -1,6 +1,9 @@
 <?php
 
-use OOReq\DataAsGET;
+use OOReq\Data\DataAsGET;
+use OOReq\Data\DataAsPOST;
+use OOReq\Data\DataAsRawBodyPOST;
+use OOReq\Data\FileAsPOST;
 use OOReq\Header\Header;
 use OOReq\Header\Headerlist;
 use OOReq\HTTPMethod\POST;
@@ -11,7 +14,6 @@ use OOReq\MIMEType;
 use OOReq\Response\AbstractResponse;
 use OOReq\Response\File;
 use OOReq\Payload;
-use OOReq\DataAsPOST;
 use OOReq\Request;
 use OOReq\Response\StringValue;
 use OOReq\URL;
@@ -63,7 +65,12 @@ class IntegrationTest extends TestCase
 	 */
 	public function testBasicGET()
 	{
-		$Request = new Request(new URL('http://' . self::TESTHOST . '/hallo'), null, null, $this->_getDefaultOptions());
+		$Request = new Request(
+			new URL('http://' . self::TESTHOST . '/hallo'),
+			null, // method. Default GET
+			null, // Payload
+			$this->_getDefaultOptions());
+
 		// Return the body as string
 		$Result = $Request->getResponseAs(new StringValue());
 
@@ -81,7 +88,7 @@ class IntegrationTest extends TestCase
 		])
 		);
 
-		$Payload->add(new DataAsGET('getA', 'ValueA'));
+		$Payload = $Payload->add(new DataAsGET('getA', 'ValueA'));
 
 		$Request = $this->Request->newPOST($URL, $Payload, $this->_getDefaultOptions());
 
@@ -97,7 +104,7 @@ class IntegrationTest extends TestCase
 
 		$Request = $this->Request->newPOST(
 			new URL('http://' . self::TESTHOST . '/postTestRAW.php'),
-			new Payload(new \OOReq\DataAsRawBodyPOST($content, $contentType)),
+			new Payload(new DataAsRawBodyPOST($content, $contentType)),
 			$this->_getDefaultOptions()
 		);
 
@@ -216,11 +223,11 @@ class IntegrationTest extends TestCase
 	/**
 	 *
 	 */
-	public function testFileUpload()
+	public function testFileUpload_POST()
 	{
 		$filenema = BASEPATH . "/resource/upfile.txt";
 		$File     = new SplFileObject($filenema);
-		$Payload  = new Payload(new \OOReq\FileAsPOST(
+		$Payload  = new Payload(new FileAsPOST(
 			'greatFile',
 			$File,
 			new MIMEType('text/plain')));
@@ -229,7 +236,7 @@ class IntegrationTest extends TestCase
 		{
 			public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, \DateInterval $RequestTime)
 			{
-
+				echo $body;
 				$bodyDecoded = json_decode($body, true);
 				return (
 					$bodyDecoded['_FILES']['greatFile']['name'] == 'upfile.txt'
@@ -240,8 +247,35 @@ class IntegrationTest extends TestCase
 
 		$Request = new Request(new URL('http://' . self::TESTHOST . "/fileUpload.php"), new POST(), $Payload);
 		$this->assertTrue($Request->getResponseAs($TestPrinter));
-
 	}
+
+	/**
+	 * WIP
+	 */
+	public function testFileUpload_PUT()
+	{
+		$this->markTestSkipped();
+		$filename = BASEPATH . "/resource/upfile.txt";
+		$File     = new SplFileObject($filename);
+		$Payload  = new Payload(new FileAsPOST(
+			'greatFile',
+			$File,
+			new MIMEType('text/plain')));
+
+		$TestPrinter = new class extends AbstractResponse
+		{
+			public function createByRequest($body, Headerlist $Headers, HTTPStatusCode $Status, \DateInterval $RequestTime)
+			{
+				$body            = json_decode($body, true);
+				$body['headers'] = $Headers;
+				return true;
+			}
+		};
+
+		$Request = new Request(new URL('http://' . self::TESTHOST . "/fileUpload_PUT.php"), new PUT(), $Payload);
+		$this->assertTrue($Request->getResponseAs($TestPrinter));
+	}
+
 
 	/**
 	 * Get Parameters should be joined
@@ -289,7 +323,7 @@ class IntegrationTest extends TestCase
 
 		$this->assertEquals('Content of redirected Target', $response['body']);
 		$redirects = explode(',', $response['LocationHeader']->value());
-		$this->assertCount(5,$redirects);
+		$this->assertCount(5, $redirects);
 	}
 
 	/**
@@ -297,7 +331,7 @@ class IntegrationTest extends TestCase
 	 */
 	public function testTooManyRedirects()
 	{
-		$this->expectException(\OOReq\ConnectionException::class);
+		$this->expectException(\OOReq\ConnectionError::class);
 		$this->expectExceptionCode(47); // Curl ErrorCode
 
 		// Redirect 12 times. 10 should be the maximum
@@ -310,7 +344,7 @@ class IntegrationTest extends TestCase
 
 	public function testCurlOptions_timeout()
 	{
-		$this->expectException(\OOReq\ConnectionException::class);
+		$this->expectException(\OOReq\ConnectionError::class);
 		$this->expectExceptionMessageRegExp("/^Resolving timed out/");
 		$URL = new URL("http://unknownhost/request?getA=hallo");
 

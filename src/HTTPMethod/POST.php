@@ -3,7 +3,7 @@
 namespace OOReq\HTTPMethod;
 
 
-class POST implements MethodInterface
+class POST implements HTTPMethod
 {
 	public function asString(): string
 	{

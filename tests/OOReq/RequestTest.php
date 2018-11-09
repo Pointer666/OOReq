@@ -1,11 +1,12 @@
-<?php
+<?php /** @noinspection ALL */
 
-use OOReq\DataAsGET;
+use OOReq\Data\DataAsGET;
+use OOReq\Data\DataAsPOST;
+use OOReq\Data\DataAsRawBodyPOST;
+use OOReq\Data\FileAsPOST;
 use OOReq\HTTPMethod\GET;
 use OOReq\HTTPMethod\POST;
 use OOReq\HTTPMethod\PUT;
-use OOReq\DataAsPOST;
-use OOReq\FileAsPOST;
 use OOReq\URL;
 use OOReq\CURL;
 
@@ -160,7 +161,7 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 	{
 		// In case of a curl error, an ConnectionException will be thrown
 		// with the curl errormessage und code
-		$this->expectException(\OOReq\ConnectionException::class);
+		$this->expectException(\OOReq\ConnectionError::class);
 		$this->expectExceptionMessage('UglyError');
 		$this->expectExceptionCode(666);
 
@@ -228,7 +229,7 @@ class RequestTest extends \PHPUnit\Framework\TestCase
 			->with($ExpectedCurlOptions);
 
 		$Data     = new \OOReq\Payload(
-			new \OOReq\DataAsRawBodyPOST($postData, $mimetype)
+			new DataAsRawBodyPOST($postData, $mimetype)
 		);
 		$Request  = new \OOReq\Request($this->_getURL(), new POST(), $Data, null, $Curl);
 		$response = $Request->getResponseAs($this->_Responsetransformation);

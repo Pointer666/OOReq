@@ -7,7 +7,7 @@ class Headerlist implements \Iterator, \Countable
 	private $Iterator;
 	private $index = [];
 
-	public function __construct(HeaderInterface ...$headers)
+	public function __construct(HTTPHeader ...$headers)
 	{
 		$data = [];
 		$key=0;
@@ -30,7 +30,7 @@ class Headerlist implements \Iterator, \Countable
 		$this->Iterator = new \ArrayIterator($data);
 	}
 
-	public function get(HeaderInterface $Header): HeaderInterface
+	public function get(HTTPHeader $Header): HTTPHeader
 	{
 		if ($this->containsHeader($Header))
 		{
@@ -58,10 +58,10 @@ class Headerlist implements \Iterator, \Countable
 			return $this->Iterator->offsetGet(array_pop($keys));
 		}
 
-		throw new NotFoundException('Header ' . $Header->name() . ' does not exist');
+		throw new NotFound('Header ' . $Header->name() . ' does not exist');
 	}
 
-	public function containsHeader(HeaderInterface $Header): bool
+	public function containsHeader(HTTPHeader $Header): bool
 	{
 		return (key_exists($Header->name(), $this->index));
 	}
@@ -78,14 +78,14 @@ class Headerlist implements \Iterator, \Countable
 		return $out;
 	}
 
-	public function addHeader(HeaderInterface $Header): Headerlist
+	public function addHeader(HTTPHeader $Header): Headerlist
 	{
 		$data   = $this->Iterator->getArrayCopy();
 		$data[] = $Header;
 		return new Headerlist(...array_values($data));
 	}
 
-	public function replaceHeader(HeaderInterface $Header): Headerlist
+	public function replaceHeader(HTTPHeader $Header): Headerlist
 	{
 		if ($this->containsHeader($Header))
 		{
@@ -95,14 +95,14 @@ class Headerlist implements \Iterator, \Countable
 		return new Headerlist(...array_values($data));
 	}
 
-	public function removeHeader(HeaderInterface $Header): Headerlist
+	public function removeHeader(HTTPHeader $Header): Headerlist
 	{
 		if ($this->containsHeader($Header))
 		{
 			$data = $this->_removeHeader($Header);
 			return new Headerlist(...array_values($data));
 		}
-		throw new NotFoundException('Header ' . $Header->name() . ' does not exist');
+		throw new NotFound('Header ' . $Header->name() . ' does not exist');
 	}
 
 	/**
@@ -175,7 +175,7 @@ class Headerlist implements \Iterator, \Countable
 		$this->Iterator->rewind();
 	}
 
-	private function _removeHeader(HeaderInterface $Header)
+	private function _removeHeader(HTTPHeader $Header)
 	{
 		$keys = $this->index[$Header->name()];
 		$data = $this->Iterator->getArrayCopy();

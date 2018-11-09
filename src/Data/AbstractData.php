@@ -1,6 +1,6 @@
 <?php
 
-namespace OOReq;
+namespace OOReq\Data;
 
 
 abstract class AbstractData implements DataInterface
@@ -43,6 +43,26 @@ abstract class AbstractData implements DataInterface
 	public function isEmpty(): bool
 	{
 		return (empty($this->name()) && empty($this->value()));
+	}
+
+	public function isHeader(): bool
+	{
+		return false;
+	}
+
+	public function isGET(): bool
+	{
+		return false;
+	}
+
+	public function isPOST(): bool
+	{
+		return false;
+	}
+
+	public function isRAWPOST(): bool
+	{
+		return false;
 	}
 }
 
